@@ -17,7 +17,8 @@ dependencies:
   
   # ── Hooks 构建系统依赖 ─────────────────────────────────────────────────────
   # Dart Hooks 核心：提供 build() 函数和 BuildInput/BuildOutput
-  hooks: ^1.0.0
+  # code_assets ^1.1.0 依赖 hooks ^2.0.0
+  hooks: ^2.0.0
   
   # 代码资产定义：CodeAsset, LinkMode 等
   code_assets: ^1.1.0
