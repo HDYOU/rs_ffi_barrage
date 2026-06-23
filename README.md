@@ -205,8 +205,8 @@ rustup target add x86_64-pc-windows-msvc
 rustup target add aarch64-pc-windows-msvc
 
 # Linux
-rustup target add aarch64-linux-gnu
-rustup target add x86_64-linux-gnu
+rustup target add aarch64-unknown-linux-gnu
+rustup target add x86_64-unknown-linux-gnu
 ```
 
 ### 3. 使用 native_doctor 自动安装（推荐）

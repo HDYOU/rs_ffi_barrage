@@ -312,7 +312,7 @@ jobs:
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: x86_64-linux-gnu,aarch64-linux-gnu
+          targets: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
           
       - name: 安装 Flutter
         uses: subosito/flutter-action@v2
