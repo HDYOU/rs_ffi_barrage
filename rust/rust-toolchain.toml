@@ -1,0 +1,38 @@
+# =============================================================================
+# rs_ffi_barrage — Rust Toolchain 配置
+#
+# native_toolchain_rust ^1.0.4 要求此文件存在，用于确保可复现的构建。
+# 注意：不要使用 "stable"、"beta" 或 "nightly" 单独作为 channel，
+# 必须指定具体版本号以确保构建可复现。
+# =============================================================================
+
+[toolchain]
+# Rust 版本：使用具体版本号而非 stable/beta/nightly
+# 1.90.0 是当前稳定版本（截至 2026 年 6 月）
+channel = "1.90.0"
+
+# 支持的目标平台
+targets = [
+  # Android
+  "armv7-linux-androideabi",      # Android ARM (armeabi-v7a)
+  "aarch64-linux-android",        # Android ARM64 (arm64-v8a)
+  "x86_64-linux-android",         # Android x86_64
+  "i686-linux-android",           # Android x86
+  
+  # iOS (真机 + 模拟器)
+  "aarch64-apple-ios",            # iOS ARM64 (真机)
+  "aarch64-apple-ios-sim",        # iOS ARM64 (模拟器 M1/M2)
+  "x86_64-apple-ios",             # iOS x86_64 (模拟器 Intel)
+  
+  # macOS
+  "aarch64-apple-darwin",         # macOS ARM64 (Apple Silicon)
+  "x86_64-apple-darwin",          # macOS x86_64 (Intel)
+  
+  # Windows
+  "aarch64-pc-windows-msvc",      # Windows ARM64
+  "x86_64-pc-windows-msvc",       # Windows x86_64
+  
+  # Linux
+  "aarch64-unknown-linux-gnu",    # Linux ARM64
+  "x86_64-unknown-linux-gnu",     # Linux x86_64
+]

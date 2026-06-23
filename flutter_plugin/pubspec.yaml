@@ -4,9 +4,9 @@ description: 高性能Flutter弹幕插件，底层Rust FFI引擎，支持Emoji�
 homepage: https://github.com/HDYOU/rs_ffi_barrage
 
 environment:
-  # Dart Hooks 系统需要 Flutter 3.38+ 和 Dart 3.5+
-  sdk: ">=3.5.0 <4.0.0"
-  flutter: ">=3.38.0"
+  # native_toolchain_rust ^1.0.4 需要 Dart SDK 3.9+
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:
@@ -23,7 +23,7 @@ dependencies:
   code_assets: ^1.1.0
   
   # Rust 编译工具链：自动调用 cargo 编译 cdylib
-  native_toolchain_rust: ^0.1.0
+  native_toolchain_rust: ^1.0.4
   
   # ── 其他功能依赖 ───────────────────────────────────────────────────────────
   path: ^1.8.0
@@ -34,25 +34,14 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  
-  # ── 开发工具依赖 ───────────────────────────────────────────────────────────
-  # native_doctor：自动安装 Rust 工具链和 NDK
-  native_doctor: ^0.1.0
-  
-  # ffigen：自动生成 FFI 绑定（可选，本项目手动编写）
-  # ffigen: ^12.0.0
 
 # ── Hooks 配置 ───────────────────────────────────────────────────────────────
-# Flutter 3.38+ 使用 Hooks 系统，不再需要平台特定的构建文件
+# Flutter 3.41+ 使用 Hooks 系统，不再需要平台特定的构建文件
 # hook/build.dart 脚本会自动处理所有平台的 Rust 编译
 flutter:
   plugin:
-    # 使用 Hooks 系统，不需要指定 platforms 配置
-    # 构建系统会自动检测 hook/build.dart 并执行
     platforms:
       android:
-        # 不再需要 ffiPlugin: true
-        # Hooks 会自动处理
       ios:
       linux:
       macos:

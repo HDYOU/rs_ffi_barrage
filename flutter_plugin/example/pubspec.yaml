@@ -4,9 +4,9 @@ publish_to: 'none'
 version: 1.0.0
 
 environment:
-  # Dart Hooks 需要 Flutter 3.38+ 和 Dart 3.5+
-  sdk: ">=3.5.0 <4.0.0"
-  flutter: ">=3.38.0"
+  # native_toolchain_rust ^1.0.4 需要 Dart SDK 3.9+
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:
