@@ -1,0 +1,39 @@
+# Rust
+rust/target/
+rust/Cargo.lock
+
+# Flutter
+flutter_plugin/.dart_tool/
+flutter_plugin/.packages
+flutter_plugin/build/
+flutter_plugin/.flutter-plugins
+flutter_plugin/.flutter-plugins-dependencies
+flutter_plugin/example/.dart_tool/
+flutter_plugin/example/build/
+flutter_plugin/example/.packages
+flutter_plugin/example/.flutter-plugins
+flutter_plugin/example/.flutter-plugins-dependencies
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated
+rust/rs_barrage.h
+
+# C Demo
+c_demo/build/
+c_demo/CMakeFiles/
+c_demo/Makefile
+c_demo/cmake_install.cmake
+c_demo/rs_ffi_barrage_demo
+
+# Token (排除敏感信息)
+.git_token

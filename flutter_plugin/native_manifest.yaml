@@ -1,0 +1,56 @@
+# =============================================================================
+# rs_ffi_barrage — Native Manifest 工具链配置
+#
+# 此文件定义了构建 Rust 原生代码所需的工具链版本要求。
+# native_doctor 工具会读取此文件，自动安装和配置必要的工具链。
+#
+# 使用方法：
+#   dart pub global activate native_doctor
+#   dart pub global run native_doctor
+# =============================================================================
+
+# ── 版本信息 ────────────────────────────────────────────────────────────────
+version: 0.1.0
+
+# ── 工具链要求 ──────────────────────────────────────────────────────────────
+requirements:
+
+  # Android NDK 版本要求
+  # 用于编译 Android 平台的 Rust 代码
+  ndk:
+    # 最低版本要求
+    version: 25.1.8937393
+    
+  # Rust 工具链版本要求
+  rust:
+    # 使用 stable 工具链
+    stable:
+      # 最低 Rust 版本要求
+      # 1.77.2+ 支持 cbindgen 和必要的 FFI 特性
+      version: 1.77.2
+      
+      # ── 需要安装的 Rust targets ────────────────────────────────────────────
+      # 不同平台需要不同的 target，native_doctor 会自动安装这些
+      targets:
+        # Android 平台
+        - arm-linux-androideabi      # Android ARM (armeabi-v7a)
+        - aarch64-linux-android     # Android ARM64 (arm64-v8a)
+        - i686-linux-android        # Android x86
+        - x86_64-linux-android      # Android x86_64
+        
+        # iOS 平台
+        - aarch64-apple-ios         # iOS ARM64 (真机)
+        - x86_64-apple-ios          # iOS x86_64 (模拟器旧版)
+        - aarch64-apple-ios-sim     # iOS ARM64 (模拟器 M1/M2)
+        
+        # macOS 平台
+        - aarch64-apple-darwin      # macOS ARM64 (Apple Silicon)
+        - x86_64-apple-darwin       # macOS x86_64 (Intel)
+        
+        # Windows 平台
+        - x86_64-pc-windows-msvc    # Windows x86_64
+        - aarch64-pc-windows-msvc   # Windows ARM64
+        
+        # Linux 平台
+        - aarch64-linux-gnu         # Linux ARM64
+        - x86_64-linux-gnu          # Linux x86_64

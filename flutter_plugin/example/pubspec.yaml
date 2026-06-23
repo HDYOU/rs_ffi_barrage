@@ -1,0 +1,23 @@
+name: rs_ffi_barrage_example
+description: rs_ffi_barrage 插件演示工程 — Dart Hooks 自动编译 Rust 原生代码
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  # Dart Hooks 需要 Flutter 3.38+ 和 Dart 3.5+
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.38.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  rs_ffi_barrage:
+    path: ../
+  http: ^1.1.0
+  path_provider: ^2.1.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/emoji_heart.png
+    - assets/emoji_star.png
