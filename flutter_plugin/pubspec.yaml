@@ -39,11 +39,4 @@ dev_dependencies:
 # ── Hooks 配置 ───────────────────────────────────────────────────────────────
 # Flutter 3.41+ 使用 Hooks 系统，不再需要平台特定的构建文件
 # hook/build.dart 脚本会自动处理所有平台的 Rust 编译
-flutter:
-  plugin:
-    platforms:
-      android:
-      ios:
-      linux:
-      macos:
-      windows:
+# 注意：使用 Hooks 时不需要指定 flutter.plugin.platforms
