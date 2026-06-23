@@ -1,0 +1,406 @@
+# =============================================================================
+# rs_ffi_barrage — GitHub Actions 多平台构建工作流
+#
+# 功能：
+# - 自动编译 Rust 原生代码（通过 Dart Hooks）
+# - 构建 Flutter Example 应用
+# - 支持所有平台：Android/iOS/Windows/macOS/Linux
+# - 每个平台产物单独上传至 Artifacts
+# =============================================================================
+
+name: Build Example App
+
+on:
+  # 手动触发
+  workflow_dispatch:
+  
+  # 推送到 main 分支时触发
+  push:
+    branches:
+      - main
+      - master
+    
+    # 仅当以下路径有变更时触发
+    paths:
+      - 'flutter_plugin/**'
+      - 'rust/**'
+      - '.github/workflows/build.yml'
+
+# 并发控制：同一分支只允许一个工作流运行
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+# 环境变量
+env:
+  FLUTTER_VERSION: '3.38.0'
+  RUST_VERSION: '1.77.2'
+
+jobs:
+  # ===========================================================================
+  # Android 构建
+  # ===========================================================================
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,arm-linux-androideabi,x86_64-linux-android,i686-linux-android
+          
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: 安装 Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+          add-to-path: true
+          
+      - name: 缓存 Flutter 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter_plugin/example/.dart_tool
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: flutter-${{ runner.os }}-
+          
+      - name: 缓存 Rust 编译产物
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: rust-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: rust-${{ runner.os }}-
+          
+      - name: 获取 Flutter 依赖
+        working-directory: flutter_plugin/example
+        run: flutter pub get
+        
+      - name: 构建 Android APK (Release)
+        working-directory: flutter_plugin/example
+        run: flutter build apk --release
+        
+      - name: 上传 Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: flutter_plugin/example/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+          if-no-files-found: error
+
+  # ===========================================================================
+  # iOS 构建 (需要 macOS runner)
+  # ===========================================================================
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+    timeout-minutes: 45
+    
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+          
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: 缓存 Flutter 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter_plugin/example/.dart_tool
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: flutter-${{ runner.os }}-
+          
+      - name: 缓存 Rust 编译产物
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: rust-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: rust-${{ runner.os }}-
+          
+      - name: 获取 Flutter 依赖
+        working-directory: flutter_plugin/example
+        run: flutter pub get
+        
+      - name: 构建 iOS (Release - 无签名)
+        working-directory: flutter_plugin/example
+        run: flutter build ios --release --no-codesign
+        
+      - name: 创建 IPA 包
+        working-directory: flutter_plugin/example
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload
+          zip -r build/ios/Runner.ipa Payload
+          
+      - name: 上传 iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: flutter_plugin/example/build/ios/Runner.ipa
+          retention-days: 30
+          if-no-files-found: error
+
+  # ===========================================================================
+  # Windows 构建
+  # ===========================================================================
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+          
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: 缓存 Flutter 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter_plugin/example/.dart_tool
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: flutter-${{ runner.os }}-
+          
+      - name: 缓存 Rust 编译产物
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: rust-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: rust-${{ runner.os }}-
+          
+      - name: 获取 Flutter 依赖
+        working-directory: flutter_plugin/example
+        run: flutter pub get
+        
+      - name: 构建 Windows (Release)
+        working-directory: flutter_plugin/example
+        run: flutter build windows --release
+        
+      - name: 打包 Windows 应用
+        working-directory: flutter_plugin/example
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/Runner-windows.zip
+          
+      - name: 上传 Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: flutter_plugin/example/build/windows/Runner-windows.zip
+          retention-days: 30
+          if-no-files-found: error
+
+  # ===========================================================================
+  # macOS 构建
+  # ===========================================================================
+  build-macos:
+    name: Build macOS APP
+    runs-on: macos-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+          
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: 缓存 Flutter 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter_plugin/example/.dart_tool
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: flutter-${{ runner.os }}-
+          
+      - name: 缓存 Rust 编译产物
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: rust-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: rust-${{ runner.os }}-
+          
+      - name: 获取 Flutter 依赖
+        working-directory: flutter_plugin/example
+        run: flutter pub get
+        
+      - name: 构建 macOS (Release)
+        working-directory: flutter_plugin/example
+        run: flutter build macos --release
+        
+      - name: 打包 macOS 应用
+        working-directory: flutter_plugin/example
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r ../../../Runner-macos.zip "rs_ffi_barrage_example.app"
+          
+      - name: 上传 macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: flutter_plugin/example/build/macos/Runner-macos.zip
+          retention-days: 30
+          if-no-files-found: error
+
+  # ===========================================================================
+  # Linux 构建
+  # ===========================================================================
+  build-linux:
+    name: Build Linux Binary
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-linux-gnu,aarch64-linux-gnu
+          
+      - name: 安装 Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          
+      - name: 安装 Linux 依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+          
+      - name: 缓存 Flutter 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            flutter_plugin/example/.dart_tool
+          key: flutter-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: flutter-${{ runner.os }}-
+          
+      - name: 缓存 Rust 编译产物
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/target
+          key: rust-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: rust-${{ runner.os }}-
+          
+      - name: 获取 Flutter 依赖
+        working-directory: flutter_plugin/example
+        run: flutter pub get
+        
+      - name: 构建 Linux (Release)
+        working-directory: flutter_plugin/example
+        run: flutter build linux --release
+        
+      - name: 打包 Linux 应用
+        working-directory: flutter_plugin/example
+        run: |
+          cd build/linux/x64/release
+          zip -r ../../../Runner-linux.zip bundle
+          
+      - name: 上传 Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: flutter_plugin/example/build/linux/Runner-linux.zip
+          retention-days: 30
+          if-no-files-found: error
+
+  # ===========================================================================
+  # 构建汇总
+  # ===========================================================================
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build-android, build-ios, build-windows, build-macos, build-linux]
+    if: always()
+    
+    steps:
+      - name: 下载所有 Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: 显示构建结果
+        run: |
+          echo "============================================"
+          echo "  rs_ffi_barrage 构建汇总"
+          echo "============================================"
+          echo ""
+          echo "构建产物列表："
+          ls -la artifacts/
+          echo ""
+          echo "各平台构建状态："
+          echo "  Android: ${{ needs.build-android.result }}"
+          echo "  iOS:     ${{ needs.build-ios.result }}"
+          echo "  Windows: ${{ needs.build-windows.result }}"
+          echo "  macOS:   ${{ needs.build-macos.result }}"
+          echo "  Linux:   ${{ needs.build-linux.result }}"
+          
+      - name: 上传汇总报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-report
+          path: artifacts/
+          retention-days: 30
